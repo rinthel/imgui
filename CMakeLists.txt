@@ -17,6 +17,10 @@ set(IMGUI_HEADERS
     imstb_textedit.h
     imstb_truetype.h)
 
+set(IMGUI_ADDON_HEADERS
+    addons/imgui_user.h
+    addons/imgui_user.inl)
+
 set(IMGUI_SOURCES
     imgui_draw.cpp
     imgui.cpp)
@@ -26,7 +30,9 @@ target_compile_definitions(imgui PUBLIC
     IMGUI_INCLUDE_IMGUI_USER_H)
 target_include_directories(imgui PUBLIC .)
 
-install(FILES ${IMGUI_HEADERS} DESTINATION include)
+install(FILES ${IMGUI_HEADERS} ${IMGUI_ADDON_HEADERS} DESTINATION include/imgui)
+install(DIRECTORY addons DESTINATION include/imgui/addons
+    FILES_MATCHING PATTERN "*.h")
 install(TARGETS imgui DESTINATION lib)
 
 # if (BUILD_DEMO)
