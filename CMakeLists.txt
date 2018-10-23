@@ -31,7 +31,7 @@ target_compile_definitions(imgui PUBLIC
 target_include_directories(imgui PUBLIC .)
 
 install(FILES ${IMGUI_HEADERS} ${IMGUI_ADDON_HEADERS} DESTINATION include/imgui)
-install(DIRECTORY addons DESTINATION include/imgui/addons
+install(DIRECTORY addons DESTINATION include/imgui
     FILES_MATCHING PATTERN "*.h")
 install(TARGETS imgui DESTINATION lib)
 
