@@ -7,22 +7,27 @@ project(imgui)
 
 option(BUILD_DEMO ON)
 
-set(IMGUI_FILES
+set(IMGUI_HEADERS
     imconfig.h
-    imgui_draw.cpp
     imgui_internal.h
     imgui_user.h
     imgui_user.inl
-    imgui.cpp
     imgui.h
     imstb_rectpack.h
     imstb_textedit.h
     imstb_truetype.h)
 
-add_library(imgui ${IMGUI_FILES})
+set(IMGUI_SOURCES
+    imgui_draw.cpp
+    imgui.cpp)
+
+add_library(imgui ${IMGUI_SOURCES} ${IMGUI_HEADERS})
 target_compile_definitions(imgui PUBLIC
     IMGUI_INCLUDE_IMGUI_USER_H)
 target_include_directories(imgui PUBLIC .)
+
+install(FILES ${IMGUI_HEADERS} DESTINATION include)
+install(TARGETS imgui DESTINATION lib)
 
 # if (BUILD_DEMO)
 #     set(IMGUI_DEMO_FILES
