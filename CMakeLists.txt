@@ -30,6 +30,10 @@ target_compile_definitions(imgui PUBLIC
     IMGUI_INCLUDE_IMGUI_USER_H)
 target_include_directories(imgui PUBLIC .)
 
+if (WIN32)
+    target_compile_definitions(imgui PUBLIC NO_IMGUIFILESYSTEM)
+endif()
+
 install(FILES ${IMGUI_HEADERS} ${IMGUI_ADDON_HEADERS} DESTINATION include/imgui)
 install(DIRECTORY addons DESTINATION include/imgui
     FILES_MATCHING PATTERN "*.h")
