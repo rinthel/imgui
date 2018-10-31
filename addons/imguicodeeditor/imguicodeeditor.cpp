@@ -4487,11 +4487,11 @@ bool BadCodeEditor(const char* label, char* buf, size_t buf_size,ImGuiCe::Langua
         //----------------------------------------
 
         // Debug: -------------------------------
-        static int prevFirstVisibleLineNumber=0;
-        if (firstVisibleLineNumber!=prevFirstVisibleLineNumber) {
-            prevFirstVisibleLineNumber = firstVisibleLineNumber;
-            fprintf(stderr,"firstVisibleLineNumber = %d numVisibleLines = %d lastVisibleLineNumber = %d size.y = %1.2f numLines = %d\n",prevFirstVisibleLineNumber,numVisibleLines,lastVisibleLineNumber,size.y,numLines);
-        }
+        // static int prevFirstVisibleLineNumber=0;
+        // if (firstVisibleLineNumber!=prevFirstVisibleLineNumber) {
+        //     prevFirstVisibleLineNumber = firstVisibleLineNumber;
+        //     fprintf(stderr,"firstVisibleLineNumber = %d numVisibleLines = %d lastVisibleLineNumber = %d size.y = %1.2f numLines = %d\n",prevFirstVisibleLineNumber,numVisibleLines,lastVisibleLineNumber,size.y,numLines);
+        // }
         // --------------------------------------
 
         //codeEditorContentWidth = langData.textSizeX;
