@@ -34,7 +34,7 @@ if (WIN32)
     target_compile_definitions(imgui PUBLIC NO_IMGUIFILESYSTEM)
 endif()
 
-if (iOS)
+if (IOS)
     target_compile_definitions(imgui PUBLIC NO_IMGUIFILESYSTEM NO_IMGUIHELPER)
 endif()
 
