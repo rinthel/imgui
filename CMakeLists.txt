@@ -34,6 +34,10 @@ if (WIN32)
     target_compile_definitions(imgui PUBLIC NO_IMGUIFILESYSTEM)
 endif()
 
+if (iOS)
+    target_compile_definitions(imgui PUBLIC NO_IMGUIFILESYSTEM NO_IMGUIHELPER)
+endif()
+
 install(FILES ${IMGUI_HEADERS} ${IMGUI_ADDON_HEADERS} DESTINATION include/imgui)
 install(DIRECTORY addons DESTINATION include/imgui
     FILES_MATCHING PATTERN "*.h")
