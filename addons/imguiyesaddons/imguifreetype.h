@@ -2,7 +2,7 @@
 #define IMGUIFREETYPE_H_
 
 // Original repository: https://github.com/Vuhdo/imgui_freetype (MIT licensed)
-// (Kept up to date in: https://github.com/ocornut/imgui_club)
+// (Kept up to date in: imgui/misc/freetype/imgui_freetype.h/cpp)
 
 // USAGE:
 /*
@@ -37,6 +37,7 @@ namespace ImGuiFreeType {
         MonoHinting     = 1 << 4,   // Strong hinting algorithm that should only be used for monochrome output.
         Bold            = 1 << 5,   // Styling: Should we artificially embolden the font?
         Oblique         = 1 << 6,   // Styling: Should we slant the font, emulating italic style?
+        Monochrome      = 1 << 7    // Disable anti-aliasing. Combine this with MonoHinting for best results!
     };
 
 

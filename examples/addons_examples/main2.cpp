@@ -126,27 +126,20 @@ void TabContentProvider(ImGui::TabWindow::TabLabel* tab,ImGui::TabWindow& parent
     if (tab) {
         ImGui::PushID(tab);
         if (tab->matchLabel("TabLabelStyle"))  {
-            /*// Color Mode
-            static int colorEditMode = ImGuiColorEditMode_RGB;
-            static const char* btnlbls[2]={"HSV##myColorBtnType1","RGB##myColorBtnType1"};
-            if (colorEditMode!=ImGuiColorEditMode_RGB)  {
-                if (ImGui::SmallButton(btnlbls[0])) {
-                    colorEditMode = ImGuiColorEditMode_RGB;
-                    ImGui::ColorEditMode(colorEditMode);
-                }
-            }
-            else if (colorEditMode!=ImGuiColorEditMode_HSV)  {
-                if (ImGui::SmallButton(btnlbls[1])) {
-                    colorEditMode = ImGuiColorEditMode_HSV;
-                    ImGui::ColorEditMode(colorEditMode);
-                }
-            }
-            ImGui::SameLine(0);ImGui::Text("Color Mode");
-            ImGui::Separator();*/
             ImGui::Spacing();
-            //ImGui::ColorEditMode(colorEditMode);
-            bool changed = ImGui::TabLabelStyle::Edit(ImGui::TabLabelStyle::Get());
-            ImGui::Separator();         
+            static bool editTheme = false;
+            bool changed = false;
+            ImGui::Spacing();
+            ImGui::Checkbox("Edit tab label style",&editTheme);
+            ImGui::Spacing();
+            if (editTheme) changed = ImGui::TabLabelStyle::Edit(ImGui::TabLabelStyle().Get());   // This is good if we want to edit the tab label style
+            else {
+                static int selectedIndex=0;
+                ImGui::PushItemWidth(135);
+                changed = ImGui::SelectTabLabelStyleCombo("select tab label style",&selectedIndex); // Good for just selecting it
+                ImGui::PopItemWidth();
+            }
+            ImGui::Separator();
 #if             (!defined(NO_IMGUIHELPER) && !defined(NO_IMGUIHELPER_SERIALIZATION))
             const char* saveName = "tabLabelStyle.style";
             const char* saveNamePersistent = "/persistent_folder/tabLabelStyle.style";
@@ -261,9 +254,7 @@ void TabContentProvider(ImGui::TabWindow::TabLabel* tab,ImGui::TabWindow& parent
 #           ifdef IMGUISTYLESERIALIZER_H_
             static int styleEnumNum = 1;
             ImGui::PushItemWidth(ImGui::GetWindowWidth()*0.44f);
-            if (ImGui::Combo("Main Style Chooser",&styleEnumNum,ImGui::GetDefaultStyleNames(),(int) ImGuiStyle_Count,(int) ImGuiStyle_Count)) {
-                ImGui::ResetStyle(styleEnumNum);
-            }
+            ImGui::SelectStyleCombo("Main Style Chooser",&styleEnumNum);
             ImGui::PopItemWidth();
             if (ImGui::IsItemHovered()) {
                 if   (styleEnumNum==ImGuiStyle_DefaultClassic)      ImGui::SetTooltip("%s","\"Default\"\nThis is the default\nclassic ImGui theme");
@@ -283,6 +274,10 @@ void TabContentProvider(ImGui::TabWindow::TabLabel* tab,ImGui::TabWindow& parent
                 else if (styleEnumNum==ImGuiStyle_Design) ImGui::SetTooltip("%s","\"Design\"\nPosted by @usernameiwantedwasalreadytaken here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
                 else if (styleEnumNum==ImGuiStyle_Dracula) ImGui::SetTooltip("%s","\"Dracula\"\nPosted by @ice1000 here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
                 else if (styleEnumNum==ImGuiStyle_Greenish) ImGui::SetTooltip("%s","\"Greenish\"\nPosted by @dertseha here:\nhttps://github.com/ocornut/imgui/issues/1902\n(hope I can use it)");
+                else if (styleEnumNum==ImGuiStyle_C64) ImGui::SetTooltip("%s","\"C64\"\nPosted by @Nullious here:\nhttps://gist.github.com/Nullious/2d598963b346c49fa4500ca16b8e5c67\n(hope I can use it)");
+                else if (styleEnumNum==ImGuiStyle_PhotoStore) ImGui::SetTooltip("%s","\"PhotoStore\"\nPosted by @Derydoca here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
+                else if (styleEnumNum==ImGuiStyle_CorporateGreyFlat) ImGui::SetTooltip("%s","\"CorporateGreyFlat\"\nPosted by @malamanteau here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
+                else if (styleEnumNum==ImGuiStyle_CorporateGreyFramed) ImGui::SetTooltip("%s","\"CorporateGreyFramed\"\nPosted by @malamanteau here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
             }
             ImGui::Spacing();ImGui::Separator();ImGui::Spacing();
 #           endif // IMGUISTYLESERIALIZER_H_
@@ -945,7 +940,7 @@ void DrawDockedWindows(ImGui::PanelManagerWindowData& wd)    {
 
             ImGui::Button( ICON_FA_FILE "  File" ); // use string literal concatenation, ouputs a file icon and File
 #           ifndef NO_IMGUIFILESYSTEM // Testing icons inside ImGuiFs::Dialog
-            ImGui::AlignFirstTextHeightToWidgets();ImGui::Text("File:");ImGui::SameLine();
+            ImGui::AlignTextToFramePadding();ImGui::Text("File:");ImGui::SameLine();
             static ImGuiFs::Dialog dlg;
             ImGui::InputText("###fsdlg",(char*)dlg.getChosenPath(),ImGuiFs::MAX_PATH_BYTES,ImGuiInputTextFlags_ReadOnly);
             ImGui::SameLine();

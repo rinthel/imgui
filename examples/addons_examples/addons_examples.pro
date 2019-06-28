@@ -63,7 +63,9 @@ IMGUI_BASE_PATH=../..
 #DEFINES+=YES_IMGUISTRINGIFIER
 #DEFINES+=STBI_NO_GIF
 #DEFINES+=NO_IMGUITOOLBAR
-#DEFINES+=YES_IMGUIIMAGEEDITOR IMGUIIMAGEEDITOR_ENABLE_NON_STB_PLUGINS IMGUIIMAGEEDITOR_NO_LODEPNG_PLUGIN
+#DEFINES+=YES_IMGUIIMAGEEDITOR IMGUIIMAGEEDITOR_ENABLE_NON_STB_PLUGINS #IMGUIIMAGEEDITOR_NO_LODEPNG_PLUGIN
+#DEFINES+=NO_IMGUI_WIDGETS_CPP_AUTO_COMPILATION NO_IMGUICODEEDITOR
+#SOURCES+=$$IMGUI_BASE_PATH/imgui_widgets.cpp
 #DEFINES+=YES_IMGUIPDFVIEWER
 #PKGCONFIG += poppler-glib
 # END USER EDITABLE AREA ----------------------------------------------------------------------------
@@ -87,7 +89,8 @@ HEADERS+=  $$IMGUI_BASE_PATH"/imgui.h"						    \
 	   $$IMGUI_BASE_PATH"/addons/imguibindings/ImImpl_Binding_Direct3D9.h"	    \
 	   $$IMGUI_BASE_PATH"/addons/imguibindings/imguibindings.h"		    \
 	   $$IMGUI_BASE_PATH"/addons/imguibindings/stb_image.h"			    \
-	   $$IMGUI_BASE_PATH"/addons/imguibindings/imguistring/imguistring.h"	    \
+           $$IMGUI_BASE_PATH"/addons/imguibindings/edtaa3func.h"			    \
+           $$IMGUI_BASE_PATH"/addons/imguistring/imguistring.h"                     \
 	   $$IMGUI_BASE_PATH"/addons/imguifilesystem/imguifilesystem.h"		    \
 	   $$IMGUI_BASE_PATH"/addons/imguifilesystem/dirent_portable.h"		    \
 	   $$IMGUI_BASE_PATH"/addons/imguilistview/imguilistview.h"		    \
@@ -109,7 +112,8 @@ SOURCES+=  $$IMGUI_BASE_PATH"/imgui.cpp" \
            $$IMGUI_BASE_PATH"/imgui_draw.cpp" #\
            #$$IMGUI_BASE_PATH"/imgui_widgets.cpp"
 
-OTHER_FILES+= $$IMGUI_BASE_PATH"/imgui_widgets.cpp" # This (new) file is automatically included in imgui_user.inl. Please don't compile it.
+OTHER_FILES+= $$IMGUI_BASE_PATH"/imgui_widgets.cpp" \ # This (new) file is automatically included in imgui_user.inl. Please don't compile it.
+              $$IMGUI_BASE_PATH"/misc/freetype/*.*"
 
 use_main6 {
 SOURCES+=main6.cpp
@@ -176,7 +180,9 @@ OTHER_FILES+= $$IMGUI_BASE_PATH"/addons/imgui_user.inl"				    \
 	   $$IMGUI_BASE_PATH"/addons/imguitabwindow/imguitabwindow.cpp"		    \
 	   $$IMGUI_BASE_PATH"/addons/imguidock/imguidock.h"			    \
 	   $$IMGUI_BASE_PATH"/addons/imguiyesaddons/imgui*.cpp"			    \
-	   README_FIRST.txt
+           $$IMGUI_BASE_PATH"/addons/imguiyesaddons/imguiimageeditor_plugins/*.h"   \
+           $$IMGUI_BASE_PATH"/addons/imguiyesaddons/imguiimageeditor_plugins/*.cpp" \
+           README_FIRST.txt
 
 
 

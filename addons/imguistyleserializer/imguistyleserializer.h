@@ -25,7 +25,11 @@ enum ImGuiStyleEnum {
     ImGuiStyle_LightGreen,  // Posted by @ebachard here: https://github.com/ocornut/imgui/pull/1776 (hope I can use it)
     ImGuiStyle_Design,      // Posted by @usernameiwantedwasalreadytaken here: https://github.com/ocornut/imgui/issues/707 (hope I can use it)
     ImGuiStyle_Dracula,     // Posted by @ice1000 here: https://github.com/ocornut/imgui/issues/707 (hope I can use it)
-    ImGuiStyle_Greenish,    // Posted by @dertseha here: https://github.com/ocornut/imgui/issues/1902 (Hope I can use it)
+    ImGuiStyle_Greenish,    // Posted by @dertseha here: https://github.com/ocornut/imgui/issues/1902 (hope I can use it)
+    ImGuiStyle_C64,         // Posted by @Nullious here: https://gist.github.com/Nullious/2d598963b346c49fa4500ca16b8e5c67 (hope I can use it)
+    ImGuiStyle_PhotoStore,  // Posted by @Derydoca here: https://github.com/ocornut/imgui/issues/707 (hope I can use it)
+    ImGuiStyle_CorporateGreyFlat,   // Posted by @malamanteau here: https://github.com/ocornut/imgui/issues/707 (hope I can use it)
+    ImGuiStyle_CorporateGreyFramed, // Posted by @malamanteau here: https://github.com/ocornut/imgui/issues/707 (hope I can use it)
 
     ImGuiStyle_DarkOpaqueInverse,
     ImGuiStyle_GrayCodz01Inverse,
@@ -52,6 +56,10 @@ IMGUI_API const char** GetDefaultStyleNames();   // ImGuiStyle_Count names re re
 // satThresholdForInvertingLuminance: in [0,1] if == 0.f luminance is not inverted at all
 // shiftHue: in [0,1] if == 0.f hue is not changed at all
 IMGUI_API void ChangeStyleColors(ImGuiStyle& style,float satThresholdForInvertingLuminance=.1f,float shiftHue=0.f);
+
+// Handy wrapper to a combo to select the style:
+IMGUI_API bool SelectStyleCombo(const char* label,int* selectedIndex,int maxNumItemsToDisplay=ImGuiStyle_Count,ImGuiStyle* styleToChange=NULL);
+
 } // namespace ImGui
 
 #endif //IMGUISTYLESERIALIZER_H_

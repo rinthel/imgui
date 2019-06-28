@@ -432,7 +432,7 @@ void DrawGL()	// Mandatory
         ImGui::SameLine();
         static int styleEnumNum = 3;    // Gray style
         ImGui::PushItemWidth(135);
-        ImGui::Combo("###StyleEnumCombo",&styleEnumNum,ImGui::GetDefaultStyleNames(),(int) ImGuiStyle_Count,(int) ImGuiStyle_Count);
+        ImGui::SelectStyleCombo("###StyleEnumCombo",&styleEnumNum);
         ImGui::PopItemWidth();
         if (ImGui::IsItemHovered()) {
             if   (styleEnumNum==ImGuiStyle_DefaultClassic)      ImGui::SetTooltip("%s","\"Default\"\nThis is the default\nclassic ImGui theme");
@@ -452,6 +452,10 @@ void DrawGL()	// Mandatory
             else if (styleEnumNum==ImGuiStyle_Design) ImGui::SetTooltip("%s","\"Design\"\nPosted by @usernameiwantedwasalreadytaken here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
             else if (styleEnumNum==ImGuiStyle_Dracula) ImGui::SetTooltip("%s","\"Dracula\"\nPosted by @ice1000 here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
             else if (styleEnumNum==ImGuiStyle_Greenish) ImGui::SetTooltip("%s","\"Greenish\"\nPosted by @dertseha here:\nhttps://github.com/ocornut/imgui/issues/1902\n(hope I can use it)");
+            else if (styleEnumNum==ImGuiStyle_C64) ImGui::SetTooltip("%s","\"C64\"\nPosted by @Nullious here:\nhttps://gist.github.com/Nullious/2d598963b346c49fa4500ca16b8e5c67\n(hope I can use it)");
+            else if (styleEnumNum==ImGuiStyle_PhotoStore) ImGui::SetTooltip("%s","\"PhotoStore\"\nPosted by @Derydoca here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
+            else if (styleEnumNum==ImGuiStyle_CorporateGreyFlat) ImGui::SetTooltip("%s","\"CorporateGreyFlat\"\nPosted by @malamanteau here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
+            else if (styleEnumNum==ImGuiStyle_CorporateGreyFramed) ImGui::SetTooltip("%s","\"CorporateGreyFramed\"\nPosted by @malamanteau here:\nhttps://github.com/ocornut/imgui/issues/707\n(hope I can use it)");
         }
 
         ImGui::SameLine();
@@ -625,7 +629,7 @@ void DrawGL()	// Mandatory
             // 4 - ChooseColorButton setup: (this does not seem to work as expected on Linux)
             //------------------------------------------------------------------------------------------
             static ImVec4 chosenColor(1,1,1,1);
-            ImGui::AlignFirstTextHeightToWidgets();ImGui::Text("Please choose a color:");ImGui::SameLine();
+            ImGui::AlignTextToFramePadding();ImGui::Text("Please choose a color:");ImGui::SameLine();
             ImGui::PushID(20);  // (I reuse ImGui::ColorButton(...) below without pushing any ID)
             if (ImGui::ColorButton("###MyColorButtonControl",chosenColor))    {
                 unsigned char aoResultRGB[3] = {(unsigned char)(chosenColor.x*255.f),(unsigned char)(chosenColor.y*255.f),(unsigned char)(chosenColor.z*255.f)};
@@ -1308,6 +1312,34 @@ void DrawGL()	// Mandatory
         ImGui::KnobFloat("Knob2", &knobValues[1], -10.f, 10.f);ImGui::SameLine();
         ImGui::KnobFloat("Knob3", &knobValues[2], -10.f, 10.f);
 
+        // LoadingIndicatorCircle
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Text("LoadingIndicatorCircle(...) from https://github.com/ocornut/imgui/issues/1901");
+        ImGui::Separator();
+        ImGui::TextUnformatted("Test 1:");ImGui::SameLine();
+        ImGui::LoadingIndicatorCircle("MyLIC1");ImGui::SameLine();
+        ImGui::TextUnformatted("Test 2:");ImGui::SameLine();
+        ImGui::LoadingIndicatorCircle("MyLIC2",1.f,&ImGui::GetStyle().Colors[ImGuiCol_Header],&ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered]);
+        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 3:");ImGui::SameLine();ImGui::LoadingIndicatorCircle("MyLIC3",2.0f);
+        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 4:");ImGui::SameLine();ImGui::LoadingIndicatorCircle("MyLIC4",4.0f,&ImGui::GetStyle().Colors[ImGuiCol_Header],&ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered],12,2.f);
+        // No idea why AlignFirstTextHeightToWidgets() does not work...
+
+
+        // LoadingIndicatorCircle2
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Text("LoadingIndicatorCircle2(...) from https://github.com/ocornut/imgui/issues/1901");
+        ImGui::Separator();
+        ImGui::TextUnformatted("Test 1:");ImGui::SameLine();
+        ImGui::LoadingIndicatorCircle2("MyLIC21");ImGui::SameLine();
+        ImGui::TextUnformatted("Test 2:");ImGui::SameLine();
+        ImGui::LoadingIndicatorCircle2("MyLIC22",1.f,1.5f,&ImGui::GetStyle().Colors[ImGuiCol_Header]);
+        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 3:");ImGui::SameLine();ImGui::LoadingIndicatorCircle2("MyLIC23",2.0f);
+        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 4:");ImGui::SameLine();ImGui::LoadingIndicatorCircle2("MyLIC24",4.0f,1.f,&ImGui::GetStyle().Colors[ImGuiCol_Header]);
+        // No idea why AlignFirstTextHeightToWidgets() does not work...
+
+
 #       else //NO_IMGUIVARIOUSCONTROLS
             ImGui::Text("%s","Excluded from this build.\n");
 #       endif //NO_IMGUIVARIOUSCONTROLS
@@ -1347,7 +1379,19 @@ void DrawGL()	// Mandatory
         // Draw tab page
         ImGui::BeginChild("MyTabLabelsChild",ImVec2(0,150),true);
         ImGui::Text("Tab Page For Tab: \"%s\" here.",selectedTab>=0?tabNames[selectedTab]:"None!");
-        if (selectedTab==0) ImGui::TabLabelStyle::Edit(ImGui::TabLabelStyle().Get());
+        if (selectedTab==0) {
+            static bool editTheme = false;
+            ImGui::Spacing();
+            ImGui::Checkbox("Edit tab label style",&editTheme);
+            ImGui::Spacing();
+            if (editTheme) ImGui::TabLabelStyle::Edit(ImGui::TabLabelStyle().Get());   // This is good if we want to edit the tab label style
+            else {
+                static int selectedIndex=0;
+                ImGui::PushItemWidth(135);
+                ImGui::SelectTabLabelStyleCombo("select tab label style",&selectedIndex); // Good for just selecting it
+                ImGui::PopItemWidth();
+            }
+        }
         ImGui::EndChild();
 
         // ImGui::TabLabelsVertical() are similiar to ImGui::TabLabels(), but they do not support WrapMode.
@@ -2127,13 +2171,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine,
     setlocale(LC_TIME, "");         // This affects imguidatechooser (the language of the names of the months)
 #   endif //__EMSCRIPTEN__
 
+    //#ifdef YES_IMGUIFREETYPE    // Testing only (to remove)
+    //ImGuiFreeType::DefaultRasterizationFlags = ImGuiFreeType::Bold|ImGuiFreeType::Oblique;
+    //#endif //YES_IMGUIFREETYPE
 
 #   ifndef USE_ADVANCED_SETUP
 
-//ImImpl_InitParams::DefaultFontSizeOverrideInPixels = 26.f;   // Fast method to override the size of the default font (13.f)
-//#ifdef YES_IMGUIFREETYPE    // Testing only (to remove)
-//ImGuiFreeType::DefaultRasterizationFlags = ImGuiFreeType::Bold|ImGuiFreeType::Oblique;
-//#endif //YES_IMGUIFREETYPE
+    //ImImpl_InitParams::DefaultFontSizeOverrideInPixels = 26.f;   // Fast method to override the size of the default font (13.f)
 
     // Basic
 #   ifndef IMGUI_USE_AUTO_BINDING_WINDOWS  // IMGUI_USE_AUTO_ definitions get defined automatically (e.g. do NOT touch them!)
@@ -2157,16 +2201,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine,
             0x2921, 0x2922, // ⤡ ⤢
             0x263A, 0x263A, // ☺
             0x266A, 0x266A, // ♪
-            0, // € ™ ↖ ⇖ ⬁ ⬉ ⤡ ⤢ ☺ ♪
+            0
         };
     const float fontSizeInPixels = 18.f;
                                   //-40.f; // If < 0, it's the number of lines that fit the whole screen (but without any kind of vertical spacing)
     ImFontConfig cfg;
 #   ifdef IMIMPL_BUILD_SDF
-    cfg.OversampleH=cfg.OversampleV=1;    // signed distance fonts works better when these values are equal (default: 3,1 are not equal)
+    cfg.OversampleH=cfg.OversampleV=1;    // signed-distance-field fonts work better when these values are equal (default: 3,1 are not equal)
     //ImImpl_SdfShaderSetParams(ImVec4(0.460f,0.365f,0.120f,0.04f));	// (optional) Sets sdf params
 #   endif //IMIMPL_BUILD_SDF
-
 
     // These lines load an embedded font (with no compression).
     const unsigned char ttfMemory[] =
@@ -2198,6 +2241,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine,
     gImGuiInitParams.gFpsClampInsideImGui = 30.0f;  // Optional Max allowed FPS (!=0, default -1 => unclamped). Useful for editors and to save GPU and CPU power.
     gImGuiInitParams.gFpsDynamicInsideImGui = false; // If true when inside ImGui, the FPS is not constant (at gFpsClampInsideImGui), but goes from a very low minimum value to gFpsClampInsideImGui dynamically. Useful for editors and to save GPU and CPU power.
     gImGuiInitParams.gFpsClampOutsideImGui = 10.f;  // Optional Max allowed FPS (!=0, default -1 => unclamped). Useful for setting a different FPS for your main rendering.
+
+//#   define TEST_IMAGE_GLYPHS    // Experimental (currently it works only with user glyphs from uniformly sized tiles in images (or from a whole image) (good for image icons), but we could extend the code in the future if requested to support font glyphs of different widths)
+#   ifdef TEST_IMAGE_GLYPHS
+    // 'S','P','F'
+    ImImpl_InitParams::CustomFontGlyph::ImageData imageData(512,512,"Tile8x8.png",8,8); // The image we want to use for our glyphs
+    gImGuiInitParams.customFontGlyphs.push_back(ImImpl_InitParams::CustomFontGlyph(0,'S',imageData, 9));
+    gImGuiInitParams.customFontGlyphs.push_back(ImImpl_InitParams::CustomFontGlyph(0,'P',imageData,10));
+    gImGuiInitParams.customFontGlyphs.push_back(ImImpl_InitParams::CustomFontGlyph(0,'F',imageData,11));
+
+    // Numbers from 1 to 9
+    ImImpl_InitParams::CustomFontGlyph::ImageData imageData2(128,128,"myNumbersTexture.png",3,3); // The image we want to use for our glyphs
+    for (int i=0;i<10;i++)   {
+        gImGuiInitParams.customFontGlyphs.push_back(ImImpl_InitParams::CustomFontGlyph(0,(ImWchar)('1'+i),imageData2,i,0.f));   // Here we use a zero advance_x_delta (default is 1.0f)
+    }
+
+    // Not sure how to specify an ImWchar using a custom definition (like FontAwesome in main2.cpp)...
+#   endif //TEST_IMAGE_GLYPHS
+
 
 #   ifndef IMGUI_USE_AUTO_BINDING_WINDOWS  // IMGUI_USE_AUTO_ definitions get defined automatically (e.g. do NOT touch them!)
     ImImpl_Main(&gImGuiInitParams,argc,argv);

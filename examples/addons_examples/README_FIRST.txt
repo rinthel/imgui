@@ -269,10 +269,10 @@ add the include folders: $IMGUI_HOME and $IMGUI_HOME/addons/addonName to your pr
 and compile the file $IMGUI_HOME/addons/addonName/addonName.cpp, where "addonName" is the name of the addon you want to use.
 Be warned that some addons might depend on others: e.g. imguipanelmanager depends on imguitoolbar: so you may need to include both addons.
 
-However I'm not sure this approach works for all the addons, since some .cpp files, like imguipanelmanager.cpp (and maybe imguicodeeditor.cpp too), need to be included after imgui.cpp to access its internals.
+However I'm not sure this approach works for all the addons, since some .cpp files, like imguipanelmanager.cpp, need to be included after imgui.cpp to access its internals.
 There's no guarantee this approach will work for all the addons, but it should in most cases.
 
-if you want to extract some addons like imguicodeeditor and imguipanelmanager, then you're forced to implement
+if you want to extract some addons like imguipanelmanager, then you're forced to implement
 some kind of  IMGUI_INCLUDE_IMGUI_USER_H / IMGUI_INCLUDE_IMGUI_USER_INL mechanism in your code (without compiling the .cpp files),
 because they use some methods that are static inside imgui.cpp, and not exposed by imgui_internal.h.
 
@@ -281,6 +281,8 @@ P.S. imguibindings is NOT considered an addon that you can easily extract and us
 IMPORTANT: Of course if you don't use the file imgui_user.inl (that includes addons/imgui_user.inl), then you
 need to compile imgui_widgets.cpp too (together with imgui.cpp and imgui_draw.cpp).
 P.S. As I've already written before, addons/imgui_user.inl now includes imgui_widgets.cpp.
+
+TESTED stand-alone addons include: imguifilesystem, imguistyleserializer, imguinodegrapheditor, imguicodeeditor, imguiimageeditor (but many others should work).
 -----------------------------------------------------------------------------------------------------------------------------------
 A MINIMAL EXAMPLE: mainBasic.cpp
 ---------------------------------
@@ -331,9 +333,9 @@ Follow these steps:
 1) Using a terminal (=command line), make sure you have a working emcc setup (try: emcc -v).
 2) Navigate (cd) to this folder (the folder where README_FIRST.txt is located).
 3) To compile the first example try:
-em++ -O2 -o main.html -I"../../" ../../imgui.cpp ../../imgui_draw.cpp  ../../imgui_demo.cpp main.cpp --preload-file myNumbersTexture.png --preload-file Tile8x8.png -D"IMGUI_INCLUDE_IMGUI_USER_H" -D"IMGUI_INCLUDE_IMGUI_USER_INL" -D"IMGUI_USE_SDL2_BINDING" -s USE_SDL=2 -s LEGACY_GL_EMULATION=0 -s ALLOW_MEMORY_GROWTH=1 -lm -lGL
+em++ -O2 -o main.html -I"../../" ../../imgui.cpp ../../imgui_draw.cpp  ../../imgui_demo.cpp main.cpp --preload-file myNumbersTexture.png --preload-file Tile8x8.png -D"IMGUI_INCLUDE_IMGUI_USER_H" -D"IMGUI_USE_SDL2_BINDING" -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN_TRAP_MODE=clamp
 4) To compile the second example try:
-em++ -O2 -o main2.html -I"../../" ../../imgui.cpp ../../imgui_draw.cpp main2.cpp --preload-file myNumbersTexture.png  --preload-file Tile8x8.png -D"IMGUI_INCLUDE_IMGUI_USER_H" -D"IMGUI_INCLUDE_IMGUI_USER_INL" -D"IMGUI_USE_SDL2_BINDING" -s USE_SDL=2 -s LEGACY_GL_EMULATION=0 -lm -lGL
+em++ -O2 -o main2.html -I"../../" ../../imgui.cpp ../../imgui_draw.cpp main2.cpp --preload-file myNumbersTexture.png  --preload-file Tile8x8.png -D"IMGUI_INCLUDE_IMGUI_USER_H" -D"IMGUI_USE_SDL2_BINDING" -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN_TRAP_MODE=clamp
 
 Some notes:
 ->  The order of the .cpp files matters: main.cpp (or main2.cpp) must be the last in the command line.
@@ -352,10 +354,9 @@ Some notes:
    It can lead to problems: you can experience errors that Firefox "Tools->Web Developer" tells you that are related to IFSDB (or something like that).
 
 (*): To compile the first demo using the GLUT binding, please try:
-em++ -O2 -o main.html -I"../../" ../../imgui.cpp ../../imgui_draw.cpp ../../imgui_demo.cpp main.cpp --preload-file myNumbersTexture.png --preload-file Tile8x8.png -D"IMGUI_INCLUDE_IMGUI_USER_H" -D"IMGUI_INCLUDE_IMGUI_USER_INL" -D"IMGUI_USE_GLUT_BINDING" -s LEGACY_GL_EMULATION=0 -s ALLOW_MEMORY_GROWTH=1 -lm -lGL
+em++ -O2 -o main.html -I"../../" ../../imgui.cpp ../../imgui_draw.cpp ../../imgui_demo.cpp main.cpp --preload-file myNumbersTexture.png --preload-file Tile8x8.png -D"IMGUI_INCLUDE_IMGUI_USER_H" -D"IMGUI_USE_GLUT_BINDING" -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN_TRAP_MODE=clamp
 	To compile it using GLFW3 try: 
-em++ -O2 -o main.html -I"../../" ../../imgui.cpp ../../imgui_draw.cpp ../../imgui_demo.cpp main.cpp --preload-file myNumbersTexture.png --preload-file Tile8x8.png  -D"IMGUI_INCLUDE_IMGUI_USER_H" -D"IMGUI_INCLUDE_IMGUI_USER_INL" -D"IMGUI_USE_GLFW_BINDING" -D"IMGUI_GLFW_NO_NATIVE_CURSORS" -s USE_GLFW=3 -s LEGACY_GL_EMULATION=0 -s ALLOW_MEMORY_GROWTH=1 -lm -lGL
-	As you can see, due to the lack of cursor support inside the glfw library, in the cpp code we had to use header file <GLFW/glfwnative.h>, that seems to be missing in emscripten.
+em++ -O2 -o main.html -I"../../" ../../imgui.cpp ../../imgui_draw.cpp ../../imgui_demo.cpp main.cpp --preload-file myNumbersTexture.png --preload-file Tile8x8.png  -D"IMGUI_INCLUDE_IMGUI_USER_H" -D"IMGUI_USE_GLFW_BINDING" -D"IMGUI_GLFW_NO_NATIVE_CURSORS" -s USE_GLFW=3 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN_TRAP_MODE=clamp
 	Thus native cursors have been disabled with: -D"IMGUI_GLFW_NO_NATIVE_CURSORS" (in InitGL() we can use: ImGui::GetIO().MouseDrawCursor = true; to use ImGui cursors instead).
 	UPDATE: Mouse cursor support has been added to GLFW version 3.1. 
 	-D"IMGUI_GLFW_NO_NATIVE_CURSORS" is DEPRECATED for GLFW versions >= 3.1.
@@ -396,9 +397,9 @@ FAQ: HOW TO RUN THE (LOCAL) HTML DEMOS
 ================================================
 If the html demos (in the html subfolder) don't run in your browser:
 ->  see if the demos work when they are hosted on a web server. Try these links:
-    https://rawgit.com/Flix01/imgui/2015-10-Addons/examples/addons_examples/html/main.html
-    https://rawgit.com/Flix01/imgui/2015-10-Addons/examples/addons_examples/html/main2.html
-    https://rawgit.com/Flix01/imgui/2015-10-Addons/examples/addons_examples/html/main3.html
+    https://rawgit.com/Flix01/imgui/imgui_with_addons/examples/addons_examples/html/main.html
+    https://rawgit.com/Flix01/imgui/imgui_with_addons/examples/addons_examples/html/main2.html
+    https://rawgit.com/Flix01/imgui/imgui_with_addons/examples/addons_examples/html/main3.html
     If they work they should work locally if you use the Firefox web browser.
     On other browsers you may get exceptions that, in the Javascript console, look like: "XMLHttpRequest cannot load".
     Here is how to solve them (from the emscripten docs):

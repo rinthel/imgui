@@ -492,7 +492,7 @@ bool ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float wid
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems) return false;
 
-    typedef struct _ImGuiCppDuply {
+    /*typedef struct _ImGuiCppDuply {
         // The meaning of this struct is to expose some internal imgui.cpp methods (not exposed by imgui_internal.h),
         // so that this .cpp file can be used directly (even without the IMGUI_INCLUDE_IMGUI_USER_H / IMGUI_INCLUDE_IMGUI_USER_INL mechanism).
 
@@ -500,7 +500,7 @@ bool ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float wid
 
         static bool IsPopupOpen(ImGuiID id) {
             ImGuiContext& g = *GImGui;
-            return g.OpenPopupStack.Size > g.CurrentPopupStack.Size && g.OpenPopupStack[g.CurrentPopupStack.Size].PopupId == id;
+            return g.OpenPopupStack.Size > g.BeginPopupStack.Size && g.OpenPopupStack[g.BeginPopupStack.Size].PopupId == id;
         }
         static void ClosePopupToLevel(int remaining)    {
             ImGuiContext& g = *GImGui;
@@ -518,7 +518,7 @@ bool ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float wid
         }
         static bool BeginPopupEx(const char* str_id, ImGuiWindowFlags extra_flags)  {
             ImGuiContext& g = *GImGui;
-            if (g.OpenPopupStack.Size <= g.CurrentPopupStack.Size) // Early out for performance
+            if (g.OpenPopupStack.Size <= g.BeginPopupStack.Size) // Early out for performance
             {
                 g.NextWindowData.Clear(); // We behave like Begin() and need to consume those values
                 return false;
@@ -526,7 +526,7 @@ bool ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float wid
             ImGuiWindowFlags flags = extra_flags|ImGuiWindowFlags_Popup|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize;
             return ImGui::BeginPopupEx(g.CurrentWindow->GetID(str_id), flags);
         }
-    } ImGuiCppDuply;
+    } ImGuiCppDuply;*/
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
@@ -568,9 +568,9 @@ bool ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float wid
         if (g.IO.MouseClicked[0])
         {
             ClearActiveID();
-            if (ImGuiCppDuply::IsPopupOpen(id))
+            if (ImGui::IsPopupOpen(id))
             {
-                ImGuiCppDuply::ClosePopup(id);
+                ClosePopupToLevel(g.OpenPopupStack.Size - 1,true);
             }
             else
             {
@@ -596,7 +596,7 @@ bool ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float wid
     }
 
     bool value_changed = false;
-    if (ImGuiCppDuply::IsPopupOpen(id))
+    if (ImGui::IsPopupOpen(id))
     {
         ImRect popup_rect(ImVec2(frame_bb.Min.x, frame_bb.Max.y), ImVec2(frame_bb.Max.x, frame_bb.Max.y));
         //popup_rect.Max.y = ImMin(popup_rect.Max.y, g.IO.DisplaySize.y - style.DisplaySafeAreaPadding.y); // Adhoc height limit for Combo. Ideally should be handled in Begin() along with other popups size, we want to have the possibility of moving the popup above as well.
@@ -608,7 +608,7 @@ bool ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float wid
 
         bool mustCloseCombo = false;
         const ImGuiWindowFlags flags =  0;//ImGuiWindowFlags_Modal;//ImGuiWindowFlags_ComboBox;  // ImGuiWindowFlags_ComboBox is no more available... what now ?
-        if (ImGuiCppDuply::BeginPopupEx(label, flags))
+        if (ImGui::BeginPopup(label, flags))
         {
             bool comboItemActive = false;
             value_changed = ColorChooserInternal(pColorOut,supportsAlpha,false,flags,&comboItemActive,windowWidth/*,true*/);
@@ -628,7 +628,9 @@ bool ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float wid
             }
             ImGui::EndPopup();
         }
-        if (mustCloseCombo && ImGuiCppDuply::IsPopupOpen(id)) ImGuiCppDuply::ClosePopup(id);
+        if (mustCloseCombo && ImGui::IsPopupOpen(id)) {
+            ClosePopupToLevel(g.OpenPopupStack.Size - 1,true);
+        }
         ImGui::PopStyleVar(3);
     }
     return value_changed;
@@ -1608,6 +1610,7 @@ int PlotHistogram(const char* label, float (*values_getter)(void* data, int idx,
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
 
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     if (graph_size.x == 0.0f) graph_size.x = CalcItemWidth();
@@ -1626,6 +1629,8 @@ int PlotHistogram(const char* label, float (*values_getter)(void* data, int idx,
         for (int i = 0; i < values_count; i++)  {
             for (int h=0;h<num_histograms;h++)  {
                 const float v = values_getter(data, (i + values_offset) % values_count, h);
+                if (v != v) // Ignore NaN values
+                    continue;
                 v_min = ImMin(v_min, v);
                 v_max = ImMax(v_max, v);
             }
@@ -1650,7 +1655,7 @@ int PlotHistogram(const char* label, float (*values_getter)(void* data, int idx,
 
         const int total_histograms = values_count * num_histograms;
 
-        const bool isItemHovered = ItemHoverable(inner_bb, 0);
+        const bool isItemHovered = ItemHoverable(inner_bb, id);
 
         if (!mustOverrideColors) col_base_embedded[0] = GetColorU32(ImGuiCol_PlotHistogram);
         const ImU32 lineCol = GetColorU32(ImGuiCol_WindowBg);
@@ -1795,6 +1800,7 @@ int PlotCurve(const char* label, float (*values_getter)(void* data, float x,int 
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
 
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     if (graph_size.x == 0.0f) graph_size.x = CalcItemWidth();
@@ -1830,7 +1836,7 @@ int PlotCurve(const char* label, float (*values_getter)(void* data, float x,int 
         const ImU32* col_base = mustOverrideColors ? pColorsOverride : col_base_embedded;
         const int num_colors = mustOverrideColors ? numColorsOverride : num_colors_embedded;
 
-        const bool isItemHovered = ItemHoverable(inner_bb, 0);
+        const bool isItemHovered = ItemHoverable(inner_bb, id);
 
         if (!mustOverrideColors) col_base_embedded[0] = GetColorU32(ImGuiCol_PlotLines);
 
@@ -2001,6 +2007,7 @@ static void PlotMultiEx(
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
 
     const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
     if (graph_size.x == 0.0f)
@@ -2042,7 +2049,7 @@ static void PlotMultiEx(
 
     // Tooltip on hover
     int v_hovered = -1;
-    if (ItemHoverable(inner_bb, 0))
+    if (ItemHoverable(inner_bb, id) && inner_bb.Contains(g.IO.MousePos))
     {
         const float t = ImClamp((g.IO.MousePos.x - inner_bb.Min.x) / (inner_bb.Max.x - inner_bb.Min.x), 0.0f, 0.9999f);
         const int v_idx = (int) (t * item_count);
@@ -2450,7 +2457,7 @@ bool InputComboWithAutoCompletion(const char* label, int *current_item, size_t a
         ImGui::SameLine();
         //ImGui::Text("%s",label);    // This doesn't cut "##". We must add all this cucumberson and error-prone code to workaround this (for correct alignment and isHovered detection):
         const ImVec2 label_size = CalcTextSize(label, NULL, true);
-        if (label_size.x>0) ImGui::RenderText(ImVec2(window->DC.CursorPos.x,window->DC.CursorPos.y+window->DC.CurrentLineTextBaseOffset),label);
+        if (label_size.x>0) ImGui::RenderText(ImVec2(window->DC.CursorPos.x,window->DC.CursorPos.y+window->DC.CurrLineTextBaseOffset),label);
         const ImRect label_bb(window->DC.CursorPos,ImVec2(window->DC.CursorPos.x + label_size.x, window->DC.CursorPos.y + label_size.y + ImGui::GetStyle().FramePadding.y*2.0f));
         ImGui::ItemSize(label_bb, ImGui::GetStyle().FramePadding.y);
         const ImGuiID labelID = 0;  // is this allowed ?
@@ -3143,7 +3150,7 @@ void TreeViewNode::render(void* ptr,int numIndents)   {
         tvhs.window->DC.CursorPos.x+= tvhs.arrowOffset*(numIndents-(isLeafNode ? 0 : 1))+(tvhs.hasArrowGlyphs?(GImGui->Style.FramePadding.x*2):0.f);
         if (!isLeafNode) {
             if (!tvhs.hasArrowGlyphs)  {
-                ImGui::SetNextTreeNodeOpen(stateopen,ImGuiCond_Always);
+                ImGui::SetNextItemOpen(stateopen,ImGuiCond_Always);
                 mustTreePop = ImGui::TreeNode("","%s","");
             }
             else {
@@ -3548,7 +3555,11 @@ bool TimelineEvent(const char* str_id, float* values,bool keep_range_constant)
         }
         if (active && isMouseDraggingZero)
         {
-            if (!keep_range_constant) values[i] += GetIO().MouseDelta.x / columnWidthScaled * s_max_timeline_value;
+            if (!keep_range_constant) {
+                values[i] += GetIO().MouseDelta.x / columnWidthScaled * s_max_timeline_value;
+                if (values[i]<0.f) values[i]=0.f;
+                else if (values[i]>s_max_timeline_value) values[i]=s_max_timeline_value;
+            }
             else mustMoveBothEnds = true;
             changed = hovered = true;
         }
@@ -3561,7 +3572,7 @@ bool TimelineEvent(const char* str_id, float* values,bool keep_range_constant)
     ImVec2 end(posx[1]-TIMELINE_RADIUS,start.y+row_height*0.4f);
     if (start.x<cursor_pos.x) start.x=cursor_pos.x;
     if (end.x>cursor_pos.x+columnWidth+TIMELINE_RADIUS) end.x=cursor_pos.x+columnWidth+TIMELINE_RADIUS;
-    const bool isInvisibleButtonCulled = start.x>cursor_pos.x+columnWidth || end.x<cursor_pos.x;
+    const bool isInvisibleButtonCulled = start.x>=cursor_pos.x+columnWidth || end.x<=cursor_pos.x;
 
     bool isInvisibleButtonItemActive=false;
     bool isInvisibleButtonItemHovered=false;
@@ -4192,5 +4203,115 @@ bool KnobFloat(const char* label, float* p_value, float v_min, float v_max,float
     return value_changed;
 }
 // End KnobFloat =========================================================================================================
+
+// Posted by @alexsr here: https://github.com/ocornut/imgui/issues/1901
+// Sligthly modified to provide default behaviour with default args
+void LoadingIndicatorCircle(const char* label, float indicatorRadiusFactor,
+                                   const ImVec4* pOptionalMainColor, const ImVec4* pOptionalBackdropColor,
+                                   int circle_count,const float speed) {
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems) {
+        return;
+    }
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiID id = window->GetID(label);
+    const ImGuiStyle& style = GetStyle();
+
+    if (circle_count<=0) circle_count = 12;
+    if (indicatorRadiusFactor<=0.f) indicatorRadiusFactor = 1.f;
+    if (!pOptionalMainColor)        pOptionalMainColor = &style.Colors[ImGuiCol_Button];
+    if (!pOptionalBackdropColor)    pOptionalBackdropColor = &style.Colors[ImGuiCol_ButtonHovered];
+
+    const float lineHeight = GetTextLineHeight(); // or GetTextLineHeight() or GetTextLineHeightWithSpacing() ?
+    float indicatorRadiusPixels = indicatorRadiusFactor*lineHeight*0.5f;
+
+    const ImVec2 pos = window->DC.CursorPos;
+    const float circle_radius = indicatorRadiusPixels / 8.f;
+    indicatorRadiusPixels-= 2.0f*circle_radius;
+    const ImRect bb(pos, ImVec2(pos.x + indicatorRadiusPixels*2.f+4.f*circle_radius,
+                                pos.y + indicatorRadiusPixels*2.f+4.f*circle_radius));
+    ItemSize(bb, style.FramePadding.y);
+    if (!ItemAdd(bb, id)) {
+        return;
+    }
+    const float base_num_segments = circle_radius*1.f;
+    const double t = g.Time;
+    const float degree_offset = 2.0f * IM_PI / circle_count;
+    for (int i = 0; i < circle_count; ++i) {
+        const float sinx = -ImSin(degree_offset * i);
+        const float cosx = ImCos(degree_offset * i);
+        const float growth = ImMax(0.0f, ImSin((float)(t*(double)(speed*3.0f)-(double)(i*degree_offset))));
+        ImVec4 color;
+        color.x = pOptionalMainColor->x * growth + pOptionalBackdropColor->x * (1.0f - growth);
+        color.y = pOptionalMainColor->y * growth + pOptionalBackdropColor->y * (1.0f - growth);
+        color.z = pOptionalMainColor->z * growth + pOptionalBackdropColor->z * (1.0f - growth);
+        color.w = 1.0f;
+        float grown_circle_radius = circle_radius*(1.0f + growth);
+        int num_segments = (int)(base_num_segments*grown_circle_radius);
+        if (num_segments<4) num_segments=4;
+        window->DrawList->AddCircleFilled(ImVec2(pos.x+2.f*circle_radius + indicatorRadiusPixels*(1.0f+sinx),
+                                                 pos.y+2.f*circle_radius + indicatorRadiusPixels*(1.0f+cosx)),
+                                                 grown_circle_radius,
+                                                 GetColorU32(color),num_segments);
+    }
+}
+
+// Posted by @zfedoran here: https://github.com/ocornut/imgui/issues/1901
+// Sligthly modified to provide default behaviour with default args
+void LoadingIndicatorCircle2(const char* label,float indicatorRadiusFactor, float indicatorRadiusThicknessFactor, const ImVec4* pOptionalColor) {
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+
+    if (indicatorRadiusFactor<=0.f) indicatorRadiusFactor = 1.f;
+    if (indicatorRadiusThicknessFactor<=0.f) indicatorRadiusThicknessFactor = 1.f;
+    if (!pOptionalColor)    pOptionalColor = &style.Colors[ImGuiCol_Button];
+    const ImU32 color = GetColorU32(*pOptionalColor);
+
+    const float lineHeight = GetTextLineHeight(); // or GetTextLineHeight() or GetTextLineHeightWithSpacing() ?
+    float indicatorRadiusPixels = indicatorRadiusFactor*lineHeight*0.5f;
+    float indicatorThicknessPixels = indicatorRadiusThicknessFactor*indicatorRadiusPixels*0.6f;
+    if (indicatorThicknessPixels>indicatorThicknessPixels*0.4f) indicatorThicknessPixels=indicatorThicknessPixels*0.4f;
+    indicatorRadiusPixels-=indicatorThicknessPixels;
+
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 size(indicatorRadiusPixels*2.f, (indicatorRadiusPixels + style.FramePadding.y)*2.f);
+
+    const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
+    ItemSize(bb, style.FramePadding.y);
+    if (!ItemAdd(bb, id))
+        return;
+
+    // Render
+    window->DrawList->PathClear();
+
+
+
+    //int num_segments = indicatorRadiusPixels/8.f;
+    //if (num_segments<4) num_segments=4;
+
+    int num_segments = 30;
+
+    int start = abs(ImSin(g.Time*1.8f)*(num_segments-5));
+
+    const float a_min = IM_PI*2.0f * ((float)start) / (float)num_segments;
+    const float a_max = IM_PI*2.0f * ((float)num_segments-3) / (float)num_segments;
+
+    const ImVec2 centre = ImVec2(pos.x+indicatorRadiusPixels, pos.y+indicatorRadiusPixels+style.FramePadding.y);
+
+    for (int i = 0; i < num_segments; i++) {
+        const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a+g.Time*8) * indicatorRadiusPixels,
+                                            centre.y + ImSin(a+g.Time*8) * indicatorRadiusPixels));
+    }
+
+    window->DrawList->PathStroke(color, false, indicatorThicknessPixels);
+}
+
 
 } // namespace ImGui
