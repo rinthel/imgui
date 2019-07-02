@@ -31,7 +31,7 @@ target_compile_definitions(imgui PUBLIC
 target_include_directories(imgui PUBLIC .)
 
 if (WIN32)
-    target_compile_definitions(imgui PUBLIC NO_IMGUIFILESYSTEM NO_IMGUIVARIOUSCONTROLSs)
+    target_compile_definitions(imgui PUBLIC NO_IMGUIFILESYSTEM NO_IMGUIVARIOUSCONTROLS)
 endif()
 
 if (IOS)
